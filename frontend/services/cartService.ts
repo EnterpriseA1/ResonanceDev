@@ -1,5 +1,6 @@
 import { useAuthStore } from '~/stores/useAuth'
 
+
 export interface CartItem {
   id: number
   name: string
@@ -11,24 +12,30 @@ export interface CartItem {
 
 export const cartService = {
   getCart(): CartItem[] {
+    const authStore = useAuthStore();
+    const currentUser = authStore.user?.username || 'guest';
+    
     if (import.meta.client) {
       try {
-        const cartData = localStorage.getItem('cart')
-        return cartData ? JSON.parse(cartData) : []
+        const cartData = localStorage.getItem(`cart_${currentUser}`);
+        return cartData ? JSON.parse(cartData) : [];
       } catch (error) {
-        console.error('Error getting cart:', error)
-        return []
+        console.error('Error getting cart:', error);
+        return [];
       }
     }
-    return []
+    return [];
   },
 
   saveCart(cart: CartItem[]): void {
+    const authStore = useAuthStore();
+    const currentUser = authStore.user?.username || 'guest';
+    
     if (import.meta.client) {
       try {
-        localStorage.setItem('cart', JSON.stringify(cart))
+        localStorage.setItem(`cart_${currentUser}`, JSON.stringify(cart));
       } catch (error) {
-        console.error('Error saving cart:', error)
+        console.error('Error saving cart:', error);
       }
     }
   },

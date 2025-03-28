@@ -4,14 +4,12 @@ from rest_framework import status
 from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
-from ..models import Product, Order
-from ..serializers import ProductSerializer
+from ..models import Product, Order, Category
+from ..serializers import ProductSerializer, CategorySerializer
 
 
 @api_view(["GET"])
 def get_admin_stats(request):
-    """Get sales statistics and analytics for admin dashboard"""
-    # Custom permission check
     if not request.user.is_authenticated:
         return Response(
             {"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED
@@ -22,11 +20,9 @@ def get_admin_stats(request):
             {"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN
         )
 
-    # Get date range (default: last 30 days)
     days = int(request.GET.get("days", 30))
     start_date = timezone.now() - timedelta(days=days)
 
-    # Calculate statistics
     stats = {
         "total_sales": Order.objects.filter(
             created_at__gte=start_date, status="delivered"
@@ -175,3 +171,10 @@ def manage_orders(request, order_id=None):
             return Response(
                 {"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND
             )
+
+
+@api_view(["GET"])
+def get_categories(request):
+    categories = Category.objects.all()
+    serializer = CategorySerializer(categories, many=True)
+    return Response(serializer.data)
